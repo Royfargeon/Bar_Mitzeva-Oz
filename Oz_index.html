@@ -44,13 +44,22 @@
             <button type="submit">Yes, I'm coming!</button>
         </form>
         <p id="responseMessage" style="color: green; margin-top: 10px;"></p>
+        <p>Total RSVPs: <span id="totalCount">0</span></p>
     </div>
 
     <script>
+        // Load total RSVPs from local storage
+        let totalGuests = localStorage.getItem("totalGuests") ? parseInt(localStorage.getItem("totalGuests")) : 0;
+        document.getElementById("totalCount").innerText = totalGuests;
+
         document.getElementById("rsvpForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            let guests = document.getElementById("guests").value;
+            let guests = parseInt(document.getElementById("guests").value);
+            totalGuests += guests;
+            localStorage.setItem("totalGuests", totalGuests);
+            document.getElementById("totalCount").innerText = totalGuests;
             document.getElementById("responseMessage").innerText = "Thank you! Your RSVP has been recorded for " + guests + " guests.";
+            document.getElementById("guests").value = "";
         });
     </script>
 </body>

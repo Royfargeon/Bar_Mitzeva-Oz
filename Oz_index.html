@@ -3,63 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSVP for Bar Mitzvah</title>
+    <title>RSVP for Oz David Fargeon’s Bar Mitzvah</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica', Arial, sans-serif;
+            background: linear-gradient(to bottom, #f0f4f8, #d9e2ec);
             text-align: center;
-            padding: 20px;
+            padding: 40px;
+            margin: 0;
         }
         .container {
-            max-width: 400px;
+            max-width: 450px;
             margin: auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-shadow: 2px 2px 12px rgba(0,0,0,0.1);
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        h2 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #7f8c8d;
             font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
         }
         input {
             width: 80%;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #responseMessage {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .success { color: #27ae60; }
+        .error { color: #e74c3c; }
+        .total {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #34495e;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>You're Invited to the Bar Mitzvah of Oz David Fargeon!</h2>
-        <p>Will you be attending?</p>
+        <h2>You’re Invited to Oz David Fargeon’s Bar Mitzvah!</h2>
+        <p>Please let us know if you’ll be joining the celebration.</p>
         <form id="rsvpForm">
-            <input type="number" id="guests" placeholder="Number of guests" min="1" required>
+            <input type="number" id="guests" placeholder="Number of Guests" min="1" required>
             <br>
-            <button type="submit">Yes, I'm coming!</button>
+            <button type="submit">Yes, I’m Coming!</button>
         </form>
-        <p id="responseMessage" style="color: green; margin-top: 10px;"></p>
-        <p>Total RSVPs: <span id="totalCount">0</span></p>
+        <p id="responseMessage"></p>
+        <p class="total">Total RSVPs: <span id="totalCount">0</span></p>
     </div>
 
     <script>
-        // Load total RSVPs from local storage
+        // Initialize total guests from local storage
         let totalGuests = localStorage.getItem("totalGuests") ? parseInt(localStorage.getItem("totalGuests")) : 0;
-        document.getElementById("totalCount").innerText = totalGuests;
+        document.getElementById("totalCount").textContent = totalGuests;
 
-        document.getElementById("rsvpForm").addEventListener("submit", function(event) {
+        const form = document.getElementById("rsvpForm");
+        const message = document.getElementById("responseMessage");
+
+        form.addEventListener("submit", function(event) {
             event.preventDefault();
-            let guests = parseInt(document.getElementById("guests").value);
+            const guestsInput = document.getElementById("guests");
+            const guests = parseInt(guestsInput.value);
+
+            // Validation
+            if (isNaN(guests) || guests < 1) {
+                message.textContent = "Please enter a valid number of guests (1 or more).";
+                message.className = "error";
+                return;
+            }
+
+            // Update total and storage
             totalGuests += guests;
             localStorage.setItem("totalGuests", totalGuests);
-            document.getElementById("totalCount").innerText = totalGuests;
-            document.getElementById("responseMessage").innerText = "Thank you! Your RSVP has been recorded for " + guests + " guests.";
-            document.getElementById("guests").value = "";
+            document.getElementById("totalCount").textContent = totalGuests;
+
+            // Success message
+            message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
+            message.className = "success";
+            guestsInput.value = ""; // Clear input
+        });
+
+        // Optional: Reset counter (for you, the host)
+        window.addEventListener("keydown", function(event) {
+            if (event.key === "r" && event.ctrlKey) {
+                totalGuests = 0;
+                localStorage.setItem("totalGuests", 0);
+                document.getElementById("totalCount").textContent = 0;
+                message.textContent = "RSVP count reset.";
+                message.className = "success";
+            }
         });
     </script>
 </body>

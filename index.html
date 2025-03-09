@@ -79,95 +79,101 @@
         <p id="exportMessage" style="margin-top: 10px;"></p>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
+    <!-- Firebase SDK (Latest version - adjust if needed) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
 
     <script type="text/javascript">
-        const firebaseConfig = {
-            apiKey: "AIzaSyAWvgn63mSEFGRiFK3RGF5gAqz8YqY778k",
-            authDomain: "barmitzvahrsvp-38c79.firebaseapp.com",
-            databaseURL: "https://barmitzvahrsvp-38c79-default-rtdb.firebaseio.com",
-            projectId: "barmitzvahrsvp-38c79",
-            storageBucket: "barmitzvahrsvp-38c79.firebasestorage.app",
-            messagingSenderId: "509197256282",
-            appId: "1:509197256282:web:08de694774f9964c353a63",
-            measurementId: "G-HN099Q1W5E"
-        };
+        window.onload = function() {
+            if (typeof firebase === "undefined") {
+                console.error("Firebase SDK not loaded!");
+            } else {
+                const firebaseConfig = {
+                    apiKey: "AIzaSyAWvgn63mSEFGRiFK3RGF5gAqz8YqY778k",
+                    authDomain: "barmitzvahrsvp-38c79.firebaseapp.com",
+                    databaseURL: "https://barmitzvahrsvp-38c79-default-rtdb.firebaseio.com",
+                    projectId: "barmitzvahrsvp-38c79",
+                    storageBucket: "barmitzvahrsvp-38c79.firebasestorage.app",
+                    messagingSenderId: "509197256282",
+                    appId: "1:509197256282:web:08de694774f9964c353a63",
+                    measurementId: "G-HN099Q1W5E"
+                };
 
-        firebase.initializeApp(firebaseConfig);
-        console.log("Firebase initialized:", firebase.apps.length);
-        const db = firebase.database();
-        console.log("Database:", db);
-        const rsvpRef = db.ref("rsvps/totalGuests");
-        console.log("Ref:", rsvpRef);
+                firebase.initializeApp(firebaseConfig);
+                console.log("Firebase initialized:", firebase.apps.length);
+                const db = firebase.database();
+                console.log("Database:", db);
+                const rsvpRef = db.ref("rsvps/totalGuests");
+                console.log("Ref:", rsvpRef);
 
-        const totalCount = document.getElementById("totalCount");
-        const form = document.getElementById("rsvpForm");
-        const message = document.getElementById("responseMessage");
-        const exportBtn = document.getElementById("exportBtn");
-        const exportMessage = document.getElementById("exportMessage");
+                const totalCount = document.getElementById("totalCount");
+                const form = document.getElementById("rsvpForm");
+                const message = document.getElementById("responseMessage");
+                const exportBtn = document.getElementById("exportBtn");
+                const exportMessage = document.getElementById("exportMessage");
 
-        rsvpRef.on("value", (snapshot) => {
-            const totalGuests = snapshot.val() || 0;
-            console.log("Firebase updated total:", totalGuests);
-            totalCount.textContent = totalGuests;
-        }, (error) => {
-            console.error("Listener error:", error);
-        });
-
-        form.addEventListener("submit", function(event) {
-            event.preventDefault();
-            const guestsInput = document.getElementById("guests");
-            const guests = parseInt(guestsInput.value);
-
-            if (isNaN(guests) || guests < 1) {
-                message.textContent = "Please enter a valid number of guests (1 or more).";
-                message.className = "error";
-                return;
-            }
-
-            rsvpRef.transaction((currentTotal) => {
-                console.log("Current total before update:", currentTotal);
-                return (currentTotal || 0) + guests;
-            }).then(() => {
-                console.log("Transaction complete");
-                message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
-                message.className = "success";
-                guestsInput.value = "";
-                rsvpRef.once("value", (snapshot) => {
-                    totalCount.textContent = snapshot.val() || 0;
+                rsvpRef.on("value", (snapshot) => {
+                    const totalGuests = snapshot.val() || 0;
+                    console.log("Firebase updated total:", totalGuests);
+                    totalCount.textContent = totalGuests;
+                }, (error) => {
+                    console.error("Listener error:", error);
                 });
-            }).catch((error) => {
-                console.error("Transaction error:", error);
-            });
-        });
 
-        exportBtn.addEventListener("click", function() {
-            rsvpRef.once("value", (snapshot) => {
-                const totalGuests = snapshot.val() || 0;
-                const rsvpText = `Total RSVPs for Oz David Fargeon’s Bar Mitzvah: ${totalGuests}`;
-                navigator.clipboard.writeText(rsvpText).then(() => {
-                    exportMessage.textContent = "Total copied to clipboard! Paste it into rsvps.txt on GitHub.";
-                    exportMessage.className = "success";
-                    setTimeout(() => exportMessage.textContent = "", 3000);
-                });
-            });
-        });
+                form.addEventListener("submit", function(event) {
+                    event.preventDefault();
+                    const guestsInput = document.getElementById("guests");
+                    const guests = parseInt(guestsInput.value);
 
-        window.addEventListener("keydown", function(event) {
-            if (event.key === "r" && event.ctrlKey) {
-                rsvpRef.set(0).then(() => {
-                    const resetText = "Total RSVPs for Oz David Fargeon’s Bar Mitzvah: 0";
-                    navigator.clipboard.writeText(resetText).then(() => {
-                        message.textContent = "RSVP count reset. Paste this into rsvps.txt on GitHub.";
+                    if (isNaN(guests) || guests < 1) {
+                        message.textContent = "Please enter a valid number of guests (1 or more).";
+                        message.className = "error";
+                        return;
+                    }
+
+                    rsvpRef.transaction((currentTotal) => {
+                        console.log("Current total before update:", currentTotal);
+                        return (currentTotal || 0) + guests;
+                    }).then(() => {
+                        console.log("Transaction complete");
+                        message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
                         message.className = "success";
+                        guestsInput.value = "";
+                        rsvpRef.once("value", (snapshot) => {
+                            totalCount.textContent = snapshot.val() || 0;
+                        });
+                    }).catch((error) => {
+                        console.error("Transaction error:", error);
                     });
-                }).catch((error) => {
-                    console.error("Reset error:", error);
+                });
+
+                exportBtn.addEventListener("click", function() {
+                    rsvpRef.once("value", (snapshot) => {
+                        const totalGuests = snapshot.val() || 0;
+                        const rsvpText = `Total RSVPs for Oz David Fargeon’s Bar Mitzvah: ${totalGuests}`;
+                        navigator.clipboard.writeText(rsvpText).then(() => {
+                            exportMessage.textContent = "Total copied to clipboard! Paste it into rsvps.txt on GitHub.";
+                            exportMessage.className = "success";
+                            setTimeout(() => exportMessage.textContent = "", 3000);
+                        });
+                    });
+                });
+
+                window.addEventListener("keydown", function(event) {
+                    if (event.key === "r" && event.ctrlKey) {
+                        rsvpRef.set(0).then(() => {
+                            const resetText = "Total RSVPs for Oz David Fargeon’s Bar Mitzvah: 0";
+                            navigator.clipboard.writeText(resetText).then(() => {
+                                message.textContent = "RSVP count reset. Paste this into rsvps.txt on GitHub.";
+                                message.className = "success";
+                            });
+                        }).catch((error) => {
+                            console.error("Reset error:", error);
+                        });
+                    }
                 });
             }
-        });
+        };
     </script>
 </body>
 </html>

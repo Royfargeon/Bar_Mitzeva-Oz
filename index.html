@@ -84,44 +84,38 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 
     <script>
-        // Your Firebase configuration (replace with yours from Firebase Console)
         const firebaseConfig = {
-          apiKey: "AIzaSyAWvgn63mSEFGRiFK3RGF5gAqz8YqY778k",
-          authDomain: "barmitzvahrsvp-38c79.firebaseapp.com",
-          databaseURL: "https://barmitzvahrsvp-38c79-default-rtdb.firebaseio.com",
-          projectId: "barmitzvahrsvp-38c79",
-          storageBucket: "barmitzvahrsvp-38c79.firebasestorage.app",
-          messagingSenderId: "509197256282",
-          appId: "1:509197256282:web:08de694774f9964c353a63",
-          measurementId: "G-HN099Q1W5E"
+            apiKey: "AIzaSyAWvgn63mSEFGRiFK3RGF5gAqz8YqY778k",
+            authDomain: "barmitzvahrsvp-38c79.firebaseapp.com",
+            databaseURL: "https://barmitzvahrsvp-38c79-default-rtdb.firebaseio.com",
+            projectId: "barmitzvahrsvp-38c79",
+            storageBucket: "barmitzvahrsvp-38c79.firebasestorage.app",
+            messagingSenderId: "509197256282",
+            appId: "1:509197256282:web:08de694774f9964c353a63",
+            measurementId: "G-HN099Q1W5E"
         };
 
-        // Initialize Firebase
-        // firebase.initializeApp(firebaseConfig);
-        // const db = firebase.database();
-        // const rsvpRef = db.ref("rsvps/totalGuests");
-
         firebase.initializeApp(firebaseConfig);
-        console.log("Firebase initialized:", firebase.apps.length); // Should log 1
+        console.log("Firebase initialized:", firebase.apps.length);
         const db = firebase.database();
-        console.log("Database:", db); // Should log a Database object
+        console.log("Database:", db);
         const rsvpRef = db.ref("rsvps/totalGuests");
-        console.log("Ref:", rsvpRef); // Should log a Reference object
+        console.log("Ref:", rsvpRef);
 
-        // Elements
         const totalCount = document.getElementById("totalCount");
         const form = document.getElementById("rsvpForm");
         const message = document.getElementById("responseMessage");
         const exportBtn = document.getElementById("exportBtn");
         const exportMessage = document.getElementById("exportMessage");
 
-        // Load initial total from Firebase
         rsvpRef.on("value", (snapshot) => {
             const totalGuests = snapshot.val() || 0;
+            console.log("Firebase updated total:", totalGuests);
             totalCount.textContent = totalGuests;
+        }, (error) => {
+            console.error("Listener error:", error);
         });
 
-        // RSVP submission
         form.addEventListener("submit", function(event) {
             event.preventDefault();
             const guestsInput = document.getElementById("guests");
@@ -133,17 +127,22 @@
                 return;
             }
 
-            // Update Firebase
             rsvpRef.transaction((currentTotal) => {
+                console.log("Current total before update:", currentTotal);
                 return (currentTotal || 0) + guests;
             }).then(() => {
+                console.log("Transaction complete");
                 message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
                 message.className = "success";
                 guestsInput.value = "";
+                rsvpRef.once("value", (snapshot) => { // Fallback update
+                    totalCount.textContent = snapshot.val() || 0;
+                });
+            }).catch((error) => {
+                console.error("Transaction error:", error);
             });
         });
 
-        // Export total RSVPs to clipboard
         exportBtn.addEventListener("click", function() {
             rsvpRef.once("value", (snapshot) => {
                 const totalGuests = snapshot.val() || 0;
@@ -156,7 +155,6 @@
             });
         });
 
-        // Reset total RSVPs (Ctrl+R)
         window.addEventListener("keydown", function(event) {
             if (event.key === "r" && event.ctrlKey) {
                 rsvpRef.set(0).then(() => {
@@ -165,6 +163,8 @@
                         message.textContent = "RSVP count reset. Paste this into rsvps.txt on GitHub.";
                         message.className = "success";
                     });
+                }).catch((error) => {
+                    console.error("Reset error:", error);
                 });
             }
         });

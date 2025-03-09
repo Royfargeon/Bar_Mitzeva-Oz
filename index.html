@@ -3,83 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSVP for Oz David Fargeon’s Bar Mitzvah</title>
-    <style>
-        body {
-            font-family: 'Helvetica', Arial, sans-serif;
-            background: linear-gradient(to bottom, #f0f4f8, #d9e2ec);
-            text-align: center;
-            padding: 40px;
-            margin: 0;
-        }
-        .container {
-            max-width: 450px;
-            margin: auto;
-            padding: 30px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        }
-        h2 {
-            color: #2c3e50;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #7f8c8d;
-            font-size: 16px;
-        }
-        input {
-            width: 80%;
-            padding: 12px;
-            margin: 15px 0;
-            border: 2px solid #bdc3c7;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin: 5px;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        #responseMessage {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        .success { color: #27ae60; }
-        .error { color: #e74c3c; }
-        .total {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #34495e;
-        }
-    </style>
+    <title>Bar Mitzvah RSVP</title>
 </head>
 <body>
-    <div class="container">
-        <h2>You’re Invited to Oz David Fargeon’s Bar Mitzvah!</h2>
-        <p>Please let us know if you’ll be joining the celebration.</p>
-        <form id="rsvpForm">
-            <input type="number" id="guests" placeholder="Number of Guests" min="1" required>
-            <br>
-            <button type="submit">Yes, I’m Coming!</button>
-        </form>
-        <p id="responseMessage"></p>
-        <p class="total">Total RSVPs: <span id="totalCount">0</span></p>
-        <button id="exportBtn">Export Total RSVPs</button>
-        <p id="exportMessage" style="margin-top: 10px;"></p>
-    </div>
+    <h1>RSVP</h1>
+    <div id="totalCount">0</div>
+    <form id="rsvpForm">
+        <!-- Form fields here -->
+        <button type="submit">Submit</button>
+    </form>
+    <div id="responseMessage"></div>
+    <button id="exportBtn">Export</button>
+    <div id="exportMessage"></div>
 
-    <!-- Firebase SDK (Latest version - adjust if needed) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
 
@@ -122,55 +58,7 @@
 
                 form.addEventListener("submit", function(event) {
                     event.preventDefault();
-                    const guestsInput = document.getElementById("guests");
-                    const guests = parseInt(guestsInput.value);
-
-                    if (isNaN(guests) || guests < 1) {
-                        message.textContent = "Please enter a valid number of guests (1 or more).";
-                        message.className = "error";
-                        return;
-                    }
-
-                    rsvpRef.transaction((currentTotal) => {
-                        console.log("Current total before update:", currentTotal);
-                        return (currentTotal || 0) + guests;
-                    }).then(() => {
-                        console.log("Transaction complete");
-                        message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
-                        message.className = "success";
-                        guestsInput.value = "";
-                        rsvpRef.once("value", (snapshot) => {
-                            totalCount.textContent = snapshot.val() || 0;
-                        });
-                    }).catch((error) => {
-                        console.error("Transaction error:", error);
-                    });
-                });
-
-                exportBtn.addEventListener("click", function() {
-                    rsvpRef.once("value", (snapshot) => {
-                        const totalGuests = snapshot.val() || 0;
-                        const rsvpText = `Total RSVPs for Oz David Fargeon’s Bar Mitzvah: ${totalGuests}`;
-                        navigator.clipboard.writeText(rsvpText).then(() => {
-                            exportMessage.textContent = "Total copied to clipboard! Paste it into rsvps.txt on GitHub.";
-                            exportMessage.className = "success";
-                            setTimeout(() => exportMessage.textContent = "", 3000);
-                        });
-                    });
-                });
-
-                window.addEventListener("keydown", function(event) {
-                    if (event.key === "r" && event.ctrlKey) {
-                        rsvpRef.set(0).then(() => {
-                            const resetText = "Total RSVPs for Oz David Fargeon’s Bar Mitzvah: 0";
-                            navigator.clipboard.writeText(resetText).then(() => {
-                                message.textContent = "RSVP count reset. Paste this into rsvps.txt on GitHub.";
-                                message.className = "success";
-                            });
-                        }).catch((error) => {
-                            console.error("Reset error:", error);
-                        });
-                    }
+                    // Handle form submission
                 });
             }
         };

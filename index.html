@@ -79,16 +79,41 @@
         <p id="exportMessage" style="margin-top: 10px;"></p>
     </div>
 
-    <script>
-        let totalGuests = localStorage.getItem("totalGuests") ? parseInt(localStorage.getItem("totalGuests")) : 0;
-        const totalCount = document.getElementById("totalCount");
-        totalCount.textContent = totalGuests;
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js"></script>
 
+    <script>
+        // Your Firebase configuration (replace with yours from Firebase Console)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const rsvpRef = db.ref("rsvps/totalGuests");
+
+        // Elements
+        const totalCount = document.getElementById("totalCount");
         const form = document.getElementById("rsvpForm");
         const message = document.getElementById("responseMessage");
         const exportBtn = document.getElementById("exportBtn");
         const exportMessage = document.getElementById("exportMessage");
 
+        // Load initial total from Firebase
+        rsvpRef.on("value", (snapshot) => {
+            const totalGuests = snapshot.val() || 0;
+            totalCount.textContent = totalGuests;
+        });
+
+        // RSVP submission
         form.addEventListener("submit", function(event) {
             event.preventDefault();
             const guestsInput = document.getElementById("guests");
@@ -100,30 +125,39 @@
                 return;
             }
 
-            totalGuests += guests;
-            localStorage.setItem("totalGuests", totalGuests);
-            totalCount.textContent = totalGuests;
-            message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
-            message.className = "success";
-            guestsInput.value = "";
-        });
-
-        exportBtn.addEventListener("click", function() {
-            const rsvpText = `Total RSVPs for Oz David Fargeon’s Bar Mitzvah: ${totalGuests}`;
-            navigator.clipboard.writeText(rsvpText).then(() => {
-                exportMessage.textContent = "Total copied to clipboard! Paste it into rsvps.txt on GitHub.";
-                exportMessage.className = "success";
-                setTimeout(() => exportMessage.textContent = "", 3000); // Clear after 3s
+            // Update Firebase
+            rsvpRef.transaction((currentTotal) => {
+                return (currentTotal || 0) + guests;
+            }).then(() => {
+                message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
+                message.className = "success";
+                guestsInput.value = "";
             });
         });
 
+        // Export total RSVPs to clipboard
+        exportBtn.addEventListener("click", function() {
+            rsvpRef.once("value", (snapshot) => {
+                const totalGuests = snapshot.val() || 0;
+                const rsvpText = `Total RSVPs for Oz David Fargeon’s Bar Mitzvah: ${totalGuests}`;
+                navigator.clipboard.writeText(rsvpText).then(() => {
+                    exportMessage.textContent = "Total copied to clipboard! Paste it into rsvps.txt on GitHub.";
+                    exportMessage.className = "success";
+                    setTimeout(() => exportMessage.textContent = "", 3000);
+                });
+            });
+        });
+
+        // Reset total RSVPs (Ctrl+R)
         window.addEventListener("keydown", function(event) {
             if (event.key === "r" && event.ctrlKey) {
-                totalGuests = 0;
-                localStorage.setItem("totalGuests", 0);
-                totalCount.textContent = 0;
-                message.textContent = "RSVP count reset.";
-                message.className = "success";
+                rsvpRef.set(0).then(() => {
+                    const resetText = "Total RSVPs for Oz David Fargeon’s Bar Mitzvah: 0";
+                    navigator.clipboard.writeText(resetText).then(() => {
+                        message.textContent = "RSVP count reset. Paste this into rsvps.txt on GitHub.";
+                        message.className = "success";
+                    });
+                });
             }
         });
     </script>

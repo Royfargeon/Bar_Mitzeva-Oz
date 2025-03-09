@@ -46,6 +46,7 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin: 5px;
         }
         button:hover {
             background-color: #2980b9;
@@ -74,45 +75,53 @@
         </form>
         <p id="responseMessage"></p>
         <p class="total">Total RSVPs: <span id="totalCount">0</span></p>
+        <button id="exportBtn">Export Total RSVPs</button>
+        <p id="exportMessage" style="margin-top: 10px;"></p>
     </div>
 
     <script>
-        // Initialize total guests from local storage
         let totalGuests = localStorage.getItem("totalGuests") ? parseInt(localStorage.getItem("totalGuests")) : 0;
-        document.getElementById("totalCount").textContent = totalGuests;
+        const totalCount = document.getElementById("totalCount");
+        totalCount.textContent = totalGuests;
 
         const form = document.getElementById("rsvpForm");
         const message = document.getElementById("responseMessage");
+        const exportBtn = document.getElementById("exportBtn");
+        const exportMessage = document.getElementById("exportMessage");
 
         form.addEventListener("submit", function(event) {
             event.preventDefault();
             const guestsInput = document.getElementById("guests");
             const guests = parseInt(guestsInput.value);
 
-            // Validation
             if (isNaN(guests) || guests < 1) {
                 message.textContent = "Please enter a valid number of guests (1 or more).";
                 message.className = "error";
                 return;
             }
 
-            // Update total and storage
             totalGuests += guests;
             localStorage.setItem("totalGuests", totalGuests);
-            document.getElementById("totalCount").textContent = totalGuests;
-
-            // Success message
+            totalCount.textContent = totalGuests;
             message.textContent = `Thank you! RSVP recorded for ${guests} guest${guests > 1 ? 's' : ''}.`;
             message.className = "success";
-            guestsInput.value = ""; // Clear input
+            guestsInput.value = "";
         });
 
-        // Optional: Reset counter (for you, the host)
+        exportBtn.addEventListener("click", function() {
+            const rsvpText = `Total RSVPs for Oz David Fargeon’s Bar Mitzvah: ${totalGuests}`;
+            navigator.clipboard.writeText(rsvpText).then(() => {
+                exportMessage.textContent = "Total copied to clipboard! Paste it into rsvps.txt on GitHub.";
+                exportMessage.className = "success";
+                setTimeout(() => exportMessage.textContent = "", 3000); // Clear after 3s
+            });
+        });
+
         window.addEventListener("keydown", function(event) {
             if (event.key === "r" && event.ctrlKey) {
                 totalGuests = 0;
                 localStorage.setItem("totalGuests", 0);
-                document.getElementById("totalCount").textContent = 0;
+                totalCount.textContent = 0;
                 message.textContent = "RSVP count reset.";
                 message.className = "success";
             }

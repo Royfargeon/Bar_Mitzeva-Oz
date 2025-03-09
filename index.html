@@ -97,9 +97,16 @@
         };
 
         // Initialize Firebase
+        // firebase.initializeApp(firebaseConfig);
+        // const db = firebase.database();
+        // const rsvpRef = db.ref("rsvps/totalGuests");
+
         firebase.initializeApp(firebaseConfig);
+        console.log("Firebase initialized:", firebase.apps.length); // Should log 1
         const db = firebase.database();
+        console.log("Database:", db); // Should log a Database object
         const rsvpRef = db.ref("rsvps/totalGuests");
+        console.log("Ref:", rsvpRef); // Should log a Reference object
 
         // Elements
         const totalCount = document.getElementById("totalCount");
